@@ -5,11 +5,11 @@
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <ProductVersion>8.0.30703</ProductVersion>
     <SchemaVersion>2.0</SchemaVersion>
-    <ProjectGuid>{A58DA1D3-F1FE-463C-9EDD-506EC58B5C73}</ProjectGuid>
+    <ProjectGuid>{7C22D27A-312F-438A-92C6-27D3083E49EA}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>IHI.Server.Plugins.Cecer1.Subscription</RootNamespace>
-    <AssemblyName>Subscription</AssemblyName>
+    <RootNamespace>IHI.Server.Plugins.Cecer1.MessengerManager</RootNamespace>
+    <AssemblyName>MessengerManager</AssemblyName>
     <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
   </PropertyGroup>
@@ -32,6 +32,10 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="NHibernate">
+      <HintPath>..\..\..\..\..\Libs\NHibernate\3.1.0\Required_Bins\NHibernate.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Data.Entity" />
@@ -42,22 +46,37 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="PacketHandlers.cs" />
-    <Compile Include="SubscriptionCore.cs" />
+    <Compile Include="Manager.cs" />
+    <Compile Include="MessengerExtensionMethods.cs" />
+    <Compile Include="PacketSenders\MMessengerUpdate.cs" />
+    <Compile Include="PacketSenders\MMessengerInit.cs" />
+    <Compile Include="PacketSenders\MMessengerSearchResults.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="PacketSenders.cs" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\..\Database Structures\DB-Main\DB-Main.csproj">
+      <Project>{62AF647E-C9BC-4E05-8A91-B044074A3147}</Project>
+      <Name>DB-Main</Name>
+      <Private>False</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Database Structures\DB-Messenger\DB-Messenger.csproj">
+      <Project>{7A858342-F379-49EC-9B93-37A39A671188}</Project>
+      <Name>DB-Messenger</Name>
+      <Private>False</Private>
+    </ProjectReference>
     <ProjectReference Include="..\..\Server\Server.csproj">
       <Project>{DAE1BFF3-35B4-493F-B261-0F050DE43832}</Project>
       <Name>Server</Name>
       <Private>False</Private>
     </ProjectReference>
-    <ProjectReference Include="..\PID1_Subscriptions\LIB-Subscriptions.csproj">
-      <Project>{6A3B8DCA-DCD6-4C55-B9F4-DF0A8E26832A}</Project>
-      <Name>LIB-Subscriptions</Name>
+    <ProjectReference Include="..\PID9_Messenger\LIB-Messenger.csproj">
+      <Project>{ABA1FAEE-ED1E-467E-84F8-E6A6A6095735}</Project>
+      <Name>LIB-Messenger</Name>
       <Private>False</Private>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="ClassDiagram1.cd" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
