@@ -49,7 +49,7 @@ namespace IHI.Server.Networking.Messages
                 InternalOutgoingMessage.Initialize(435)
                     .AppendInt32(_friends.Count);
 
-                foreach (var friend in _friends)
+                foreach (IBefriendable friend in _friends)
                 {
                     InternalOutgoingMessage.
                         AppendInt32(friend.GetID()).
@@ -61,14 +61,13 @@ namespace IHI.Server.Networking.Messages
                         AppendString("").
                         AppendBoolean(true).
                         AppendString(friend.GetFigure().ToString()).
-                        AppendString(friend.GetLastAccess().ToString()).
-                        AppendString("");
+                        AppendString(friend.GetLastAccess().ToString());
                 }
 
                 InternalOutgoingMessage
                     .AppendInt32(_strangers.Count);
 
-                foreach (var stranger in _strangers)
+                foreach (IBefriendable stranger in _strangers)
                 {
                     InternalOutgoingMessage.
                         AppendInt32(stranger.GetID()).
@@ -80,8 +79,7 @@ namespace IHI.Server.Networking.Messages
                         AppendString("").
                         AppendBoolean(false).
                         AppendString(stranger.GetFigure().ToString()).
-                        AppendString(stranger.GetLastAccess().ToString()).
-                        AppendString("");
+                        AppendString(stranger.GetLastAccess().ToString());
                 }
             }
 

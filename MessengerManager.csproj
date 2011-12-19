@@ -38,19 +38,16 @@
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
-    <Reference Include="System.Data.Entity" />
-    <Reference Include="System.Xml.Linq" />
-    <Reference Include="System.Data.DataSetExtensions" />
-    <Reference Include="Microsoft.CSharp" />
-    <Reference Include="System.Data" />
-    <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="DataPersist.cs" />
+    <Compile Include="Messages\MMessengerFriendRequestNotification.cs" />
+    <Compile Include="PacketHandlers.cs" />
     <Compile Include="Manager.cs" />
     <Compile Include="MessengerExtensionMethods.cs" />
-    <Compile Include="PacketSenders\MMessengerUpdate.cs" />
-    <Compile Include="PacketSenders\MMessengerInit.cs" />
-    <Compile Include="PacketSenders\MMessengerSearchResults.cs" />
+    <Compile Include="Messages\MMessengerUpdate.cs" />
+    <Compile Include="Messages\MMessengerInit.cs" />
+    <Compile Include="Messages\MMessengerSearchResults.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
@@ -69,14 +66,11 @@
       <Name>Server</Name>
       <Private>False</Private>
     </ProjectReference>
-    <ProjectReference Include="..\PID9_Messenger\LIB-Messenger.csproj">
+    <ProjectReference Include="..\..\Plugins\PID9_Messenger\LIB-Messenger.csproj">
       <Project>{ABA1FAEE-ED1E-467E-84F8-E6A6A6095735}</Project>
       <Name>LIB-Messenger</Name>
       <Private>False</Private>
     </ProjectReference>
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="ClassDiagram1.cd" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

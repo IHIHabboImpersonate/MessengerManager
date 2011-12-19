@@ -1,48 +1,33 @@
 ﻿using System.Collections.Generic;
 using IHI.Database;
-using IHI.Server.Habbos;
 using IHI.Server.Libraries.Cecer1.Messenger;
-using IHI.Server.Networking.Messages;
+using NHibernate;
 using NHibernate.Criterion;
 using Friend = IHI.Server.Libraries.Cecer1.Messenger.Friend;
 using Habbo = IHI.Server.Habbos.Habbo;
 
 namespace IHI.Server.Plugins.Cecer1.MessengerManager
 {
-    public class Manager : Plugin
+	[CompatibilityLock(36)]
+    public partial class Manager : Plugin
     {
         public static event MessengerEventHandler OnMessengerReady;
 
         public override void Start()
         {
-            Habbo.OnHabboLogin += RegisterHandlers;
-        }
-
-
-        private static void RegisterHandlers(object source, HabboEventArgs args)
-        {
-            var target = source as Habbo;
-            if (target == null)
-                return;
-            target.
-                GetConnection().
-                AddHandler(12, PacketHandlerPriority.DefaultAction, ProcessMessengerInit).
-                AddHandler(41, PacketHandlerPriority.DefaultAction, ProcessMessengerSearch);
+            CoreManager.ServerCore.GetHabboDistributor().OnHabboLogin += RegisterHandlers;
+            OnMessengerReady += RegisterEvents;
         }
 
         private static MessengerObject CreateMessenger(Habbo habbo)
         {
-            var messenger = new MessengerObject(
-                habbo,
-                habbo.GetPersistantVariable("Messenger.StalkBlock") != null,
-                habbo.GetPersistantVariable("Messenger.RequestBlock") != null,
-                habbo.GetPersistantVariable("Messenger.InviteBlock") != null);
+            MessengerObject messenger = new MessengerObject(habbo);
 
 
             List<MessengerCategory> categoriesOutput;
             List<MessengerFriendship> friendsOutput;
             List<MessengerFriendRequest> friendsRequestOutput;
-            using (var db = CoreManager.GetServerCore().GetDatabaseSession())
+            using (ISession db = CoreManager.ServerCore.GetDatabaseSession())
             {
                 categoriesOutput = (List<MessengerCategory>) (db.CreateCriteria<MessengerCategory>()
                                                                  .Add(
@@ -65,98 +50,50 @@ namespace IHI.Server.Plugins.Cecer1.MessengerManager
 
             messenger.SetCategory(0, new Category(0, "", messenger)); // Default category
 
-            foreach (var category in categoriesOutput)
+            foreach (MessengerCategory category in categoriesOutput)
             {
-// ReSharper disable PossibleInvalidOperationException
-                messenger.SetCategory(category.category_id.Value,
-                                      new Category((int)category.category_id, category.name, messenger));
-// ReSharper restore PossibleInvalidOperationException
+                messenger.SetCategory(category.category_id,
+                                      new Category(category.category_id, category.name, messenger));
             }
 
-            foreach (var friendship in friendsOutput)
+            foreach (MessengerFriendship friendship in friendsOutput)
             {
                 Habbo friendHabbo;
                 Category friendCategory;
-                MessengerObject friendMessenger;
                 if (friendship.habbo_a.habbo_id == habbo.GetID())
                 {
-                    friendHabbo = CoreManager.GetServerCore().GetHabboDistributor().GetHabbo(friendship.habbo_b.habbo_id);
-                    friendMessenger = friendHabbo.GetInstanceVariable("Messenger.Instance") as MessengerObject;
-                    friendCategory = messenger.GetCategory(friendship.category_a.category_id);
+                    friendHabbo = CoreManager.ServerCore.GetHabboDistributor().GetHabbo(friendship.habbo_b.habbo_id);
+                    friendCategory = messenger.GetCategory(friendship.category_b);
                 }
                 else
                 {
-                    friendHabbo = CoreManager.GetServerCore().GetHabboDistributor().GetHabbo(friendship.habbo_b.habbo_id);
-                    friendMessenger = friendHabbo.GetInstanceVariable("Messenger.Instance") as MessengerObject;
-                    friendCategory = messenger.GetCategory(friendship.category_a.category_id);
+                    friendHabbo = CoreManager.ServerCore.GetHabboDistributor().GetHabbo(friendship.habbo_a.habbo_id);
+                    friendCategory = messenger.GetCategory(friendship.category_a);
                 }
-                friendCategory.AddFriend(new Friend(friendHabbo, friendCategory.GetID(), friendMessenger.IsStalkable()));
+                friendCategory.AddFriend(new Friend(friendHabbo)
+                                             {
+                                                 Category = friendCategory.GetID()
+                                             });
             }
 
-            foreach (var request in friendsRequestOutput)
+            foreach (MessengerFriendRequest request in friendsRequestOutput)
             {
-                messenger.AddFriendRequest(
-                    CoreManager.GetServerCore().GetHabboDistributor().GetHabbo(request.habbo_from_id));
+                messenger.NotifyFriendRequest(
+                    CoreManager.ServerCore.GetHabboDistributor().GetHabbo(request.habbo_from_id));
             }
 
-            messenger.OnMessengerFriendStateChanged += Messenger_OnMessengerFriendStateChanged;
+            messenger.OnFriendStateChanged += Messenger_OnMessengerFriendStateChanged;
             return messenger;
         }
 
-        private static void ProcessMessengerInit(Habbo sender, IncomingMessage message)
-        {
-            var messenger = CreateMessenger(
-                sender);
-
-            sender.SetInstanceVariable("Messenger.Instance", messenger);
-            new MMessengerInit(10, 20, 30, 40, messenger.GetAllCategories(), messenger.GetAllFriends()).Send(sender);
-
-            sender.SetInstanceVariable("Messenger.WaitingUpdateMessage", new MMessengerUpdate());
-
-            if (OnMessengerReady != null)
-                OnMessengerReady.Invoke(messenger, new MessengerEventArgs(sender));
-        }
-
-        private static void ProcessMessengerSearch(Habbo sender, IncomingMessage message)
-        {
-            var searchString = message.PopPrefixedString();
-
-            List<Database.Habbo> matching;
-            // Using IHIDB.Habbo rather than IHIDB.Friend because this will be passed to the HabboDistributor
-            using (var db = CoreManager.GetServerCore().GetDatabaseSession())
-            {
-                matching = db.CreateCriteria<Database.Habbo>().
-                               Add(new LikeExpression("username", searchString + "%")).
-                               SetMaxResults(20). // TODO: External config
-                               List<Database.Habbo>() as List<Database.Habbo>;
-            }
-
-            var friends = new List<IBefriendable>();
-            var strangers = new List<IBefriendable>();
-
-            var messenger = sender.GetMessenger();
-            var habboDistributor = CoreManager.GetServerCore().GetHabboDistributor();
-
-            foreach (var match in matching)
-            {
-                IBefriendable habbo = habboDistributor.GetHabbo(match);
-                if (messenger.IsFriend(match.habbo_id))
-                    friends.Add(habbo);
-                else
-                    strangers.Add(habbo);
-            }
-
-            new MMessengerSearchResults(friends, strangers).Send(sender);
-        }
+        
 
         #region Messenger Updates
 
         private static void Messenger_OnMessengerFriendStateChanged(object source, MessengerFriendEventArgs e)
 
         {
-            (source as MessengerObject).
-                GetWaitingUpdateMessage()
-                .Add(e);
+            (source as MessengerObject).GetWaitingUpdateMessage().FriendUpdates.Add(e);
         }
 
         #endregion
