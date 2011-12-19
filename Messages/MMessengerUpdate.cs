@@ -18,11 +18,6 @@ namespace IHI.Server.Networking.Messages
             get;
             private set;
         }
-        public ICollection<Friend> Friends
-        {
-            get;
-            private set;
-        }
         #endregion
 
         #region Constructors
@@ -30,8 +25,8 @@ namespace IHI.Server.Networking.Messages
         {
             Categories = new List<Category>();
             FriendUpdates = new List<MessengerFriendEventArgs>();
-            Friends = new List<Friend>();
         }
+
         #endregion
 
         #region Methods
@@ -41,51 +36,36 @@ namespace IHI.Server.Networking.Messages
             {
                 InternalOutgoingMessage.Initialize(13)
                     .AppendInt32(Categories.Count - 1); // -1 because the default category doesn't count.
-                foreach (Category category in Categories.Where(category => category.GetID() != 0))
+                foreach (Category category in Categories.Where(category => category.ID != 0))
                 {
                     InternalOutgoingMessage
-                        .AppendInt32(category.GetID())
-                        .AppendString(category.GetName());
+                        .AppendInt32(category.ID)
+                        .AppendString(category.Name);
                 }
 
                 InternalOutgoingMessage
-                    .AppendInt32(FriendUpdates.Count + Friends.Count);
+                    .AppendInt32(FriendUpdates.Count);
 
                 foreach (MessengerFriendEventArgs friendUpdate in FriendUpdates)
                 {
-                    IBefriendable friend = friendUpdate.Friend;
+                    Friend friend = friendUpdate.Friend;
 
                     InternalOutgoingMessage
                         .AppendInt32((int)friendUpdate.Type)
-                        .AppendInt32(friend.GetID());
+                        .AppendInt32(friend.Befriendable.GetID());
 
                     if (friendUpdate.Type != FriendUpdateType.Removed)
                     {
                         InternalOutgoingMessage
-                            .AppendString(friend.GetDisplayName())
+                            .AppendString(friend.Befriendable.GetDisplayName())
                             .AppendBoolean(false) // TODO: Find out what this does.
-                            .AppendBoolean(friend.IsLoggedIn())
-                            .AppendBoolean(friend.IsStalkable())
-                            .AppendString(friend.GetFigure().ToString())
-                            .AppendInt32(friendUpdate.Category.GetID())
-                            .AppendString(friend.GetMotto())
-                            .AppendString(friend.GetLastAccess().ToString());
+                            .AppendBoolean(friend.Befriendable.IsLoggedIn())
+                            .AppendBoolean(friend.Befriendable.IsStalkable())
+                            .AppendString(friend.Befriendable.GetFigure().ToString())
+                            .AppendInt32(friendUpdate.Category.ID)
+                            .AppendString(friend.Befriendable.GetMotto())
+                            .AppendString(friend.Befriendable.GetLastAccess().ToString());
                     }
-                }
-
-                foreach (Friend friend in Friends)
-                {
-                    InternalOutgoingMessage
-                        .AppendBoolean(false) // TODO: Find out what this does.
-                        .AppendInt32(friend.GetID())
-                        .AppendString(friend.GetDisplayName())
-                        .AppendBoolean(false) // TODO: Find out what this does.
-                        .AppendBoolean(friend.IsLoggedIn())
-                        .AppendBoolean(friend.IsStalkable())
-                        .AppendString(friend.GetFigure().ToString())
-                        .AppendInt32(friend.Category)
-                        .AppendString(friend.GetMotto())
-                        .AppendString(friend.GetLastAccess().ToString());
                 }
             }
 

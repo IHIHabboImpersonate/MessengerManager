@@ -74,28 +74,9 @@ namespace IHI.Server.Plugins.Cecer1.MessengerManager
             {
                 // Get the ID of the friend about to be removed.
                 int friendID = message.PopWiredInt32();
-                // Get the category the friend is in.
-                Category category = messenger.GetCategoryContainingFriend(friendID);
-                
-                // Confirm the friend is in this category.
-                if(category == null)
-                    // Nope, move on.
-                    continue;
 
-                // Get the Friend instance of the friend.
-                Friend friend = category.GetFriend(friendID);
-                // Remove the friend from the category.
-                category.RemoveFriend(friendID);
-
-                // Get the MessengerObject instance of the friend.
-                MessengerObject friendMessenger = friend.GetMessenger();
-                // If the MessengerObject is null then the friend is offline and we are done.
-                if(friendMessenger != null)
-                {
-                    // The friend is online, update their Messenger to reflect the deleted friendship.
-                    friendMessenger.GetCategoryContainingFriend(sender).RemoveFriend(sender.GetID());
-                    friendMessenger.SendWaitingUpdateMessage();
-                }
+                // Remove the friend from all categories.
+                messenger.RemoveFriend(friendID);
             }
             messenger.SendWaitingUpdateMessage();
         }
@@ -123,7 +104,7 @@ namespace IHI.Server.Plugins.Cecer1.MessengerManager
             foreach (Database.Habbo match in matching)
             {
                 IBefriendable habbo = habboDistributor.GetHabbo(match);
-                if (messenger.IsFriend(match.habbo_id))
+                if (messenger.IsFriend(habbo))
                     friends.Add(habbo);
                 else
                     strangers.Add(habbo);
@@ -138,7 +119,7 @@ namespace IHI.Server.Plugins.Cecer1.MessengerManager
                 {
                     ID = e.GetFrom().GetID(),
                     Username = e.GetFrom().GetDisplayName()
-                }.Send((source as MessengerObject).GetOwner());
+                }.Send((source as MessengerObject).Owner);
         }
     }
 }

@@ -1,17 +1,18 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using IHI.Server.Libraries.Cecer1.Messenger;
+using IHI.Server.Habbos;
 
 namespace IHI.Server.Networking.Messages
 {
     public class MMessengerInit : OutgoingMessage
     {
-        public ICollection<Category> Categories
+        public IEnumerable<Category> Categories
         {
             get;
             set;
         }
-        public ICollection<Friend> Friends
+        public IEnumerable<Friend> Friends
         {
             get;
             set;
@@ -45,13 +46,13 @@ namespace IHI.Server.Networking.Messages
                     .AppendInt32(UnknownA)
                     .AppendInt32(UnknownB)
                     .AppendInt32(UnknownC)
-                    .AppendInt32(Categories.Count - 1); // -1 because the default category doesn't count
+                    .AppendInt32(Categories.Count() - 1); // -1 because the default category doesn't count
 
-                foreach (Category category in Categories.Where(category => category.GetID() != 0))
+                foreach (Category category in Categories.Where(category => category.ID != 0))
                 {
                     InternalOutgoingMessage
-                        .AppendInt32(category.GetID())
-                        .AppendString(category.GetName());
+                        .AppendInt32(category.ID)
+                        .AppendString(category.Name);
                 }
 
                 InternalOutgoingMessage
@@ -59,16 +60,19 @@ namespace IHI.Server.Networking.Messages
 
                 foreach (Friend friend in Friends)
                 {
-                    InternalOutgoingMessage
-                        .AppendInt32(friend.GetID())
-                        .AppendString(friend.GetDisplayName())
-                        .AppendBoolean(true) // TODO: Find out what this does.
-                        .AppendBoolean(friend.IsLoggedIn())
-                        .AppendBoolean(friend.IsStalkable())
-                        .AppendString(friend.GetFigure().ToString())
-                        .AppendInt32(friend.Category)
-                        .AppendString(friend.GetMotto())
-                        .AppendString(friend.GetLastAccess().ToString());
+                    foreach (Category category in friend.GetCategories())
+                    {
+                        InternalOutgoingMessage
+                            .AppendInt32(friend.Befriendable.GetID())
+                            .AppendString(friend.Befriendable.GetDisplayName())
+                            .AppendBoolean(true) // TODO: Find out what this does.
+                            .AppendBoolean(friend.Befriendable.IsLoggedIn())
+                            .AppendBoolean(friend.Befriendable.IsStalkable())
+                            .AppendString(friend.Befriendable.GetFigure().ToString())
+                            .AppendInt32(category.ID)
+                            .AppendString(friend.Befriendable.GetMotto())
+                            .AppendString(friend.Befriendable.GetLastAccess().ToString());
+                    }
                 }
 
                 InternalOutgoingMessage
