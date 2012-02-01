@@ -1,10 +1,34 @@
-﻿using System.Collections.Generic;
+﻿#region GPLv3
+
+// 
+// Copyright (C) 2012  Chris Chenery
+// 
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+// 
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+// 
+// You should have received a copy of the GNU General Public License
+// along with this program.  If not, see <http://www.gnu.org/licenses/>.
+// 
+
+#endregion
+
+#region Usings
+
+using System.Collections.Generic;
 using IHI.Server.Habbos;
 using IHI.Server.Libraries.Cecer1.Messenger;
 using IHI.Server.Networking.Messages;
 using NHibernate;
 using NHibernate.Criterion;
-using Habbo = IHI.Server.Habbos.Habbo;
+
+#endregion
 
 namespace IHI.Server.Plugins.Cecer1.MessengerManager
 {
@@ -36,8 +60,8 @@ namespace IHI.Server.Plugins.Cecer1.MessengerManager
                 .SendFriendRequest(
                     CoreManager.
                         ServerCore.
-                            GetHabboDistributor().
-                                GetHabbo(username));
+                        GetHabboDistributor().
+                        GetHabbo(username));
         }
 
         private static void ProcessMessengerInit(Habbo sender, IncomingMessage message)
@@ -49,14 +73,13 @@ namespace IHI.Server.Plugins.Cecer1.MessengerManager
             sender.SetInstanceVariable("Messenger.WaitingUpdateMessage", new MMessengerUpdate());
 
             new MMessengerInit
-            {
-                Categories = messenger.GetAllCategories(),
-                Friends = messenger.GetAllFriends(),
-
-                UnknownA = 10,
-                UnknownB = 20,
-                UnknownC = 30,
-            }.Send(sender);
+                {
+                    Categories = messenger.GetAllCategories(),
+                    Friends = messenger.GetAllFriends(),
+                    UnknownA = 10,
+                    UnknownB = 20,
+                    UnknownC = 30,
+                }.Send(sender);
 
 
             if (OnMessengerReady != null)
@@ -70,7 +93,7 @@ namespace IHI.Server.Plugins.Cecer1.MessengerManager
             MessengerObject messenger = sender.GetMessenger();
 
             // Handle each one.
-            for(int i = 0; i < amount; i++)
+            for (int i = 0; i < amount; i++)
             {
                 // Get the ID of the friend about to be removed.
                 int friendID = message.PopWiredInt32();

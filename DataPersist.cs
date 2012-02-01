@@ -21,32 +21,37 @@
 
 #region Usings
 
-using System.Linq;
-using IHI.Server.Habbos;
 using IHI.Server.Libraries.Cecer1.Messenger;
-using IHI.Server.Networking.Messages;
 
 #endregion
 
 namespace IHI.Server.Plugins.Cecer1.MessengerManager
 {
-    public static class MessengerExtensionMethods
+    internal class DataPersist
     {
-        public static MMessengerUpdate GetWaitingUpdateMessage(this MessengerObject messenger)
+        internal static void RegisterEventHandlers(MessengerObject messenger)
         {
-            return messenger.Owner.GetInstanceVariable("Messenger.WaitingUpdateMessage") as MMessengerUpdate;
+            messenger.OnFriendStateChanged += PersistFriendStateChanged;
+            messenger.OnCategoryChanged += messenger_OnCategoryChanged;
         }
 
-        public static MessengerObject SendWaitingUpdateMessage(this MessengerObject messenger)
+        private static void messenger_OnCategoryChanged(object source, MessengerCategoryEventArgs e)
         {
-            Habbo owner = messenger.Owner;
-            MMessengerUpdate message = owner.GetInstanceVariable("Messenger.WaitingUpdateMessage") as MMessengerUpdate;
-            message.Categories.Union(messenger.GetAllCategories());
-            message.Send(owner);
+        }
 
-            message.FriendUpdates.Clear();
-            message.Categories.Clear();
-            return messenger;
+        private static void PersistFriendStateChanged(object source, MessengerFriendEventArgs e)
+        {
+            switch (e.Type)
+            {
+                case FriendUpdateType.Added:
+                    {
+                        break;
+                    }
+                case FriendUpdateType.Removed:
+                    {
+                        break;
+                    }
+            }
         }
     }
 }
