@@ -22,9 +22,11 @@
 #region Usings
 
 using System.Collections.Generic;
+using IHI.Server;
 using IHI.Server.Habbos;
 using IHI.Server.Libraries.Cecer1.Messenger;
 using IHI.Server.Networking.Messages;
+using MessengerManager;
 using NHibernate;
 using NHibernate.Criterion;
 
@@ -108,14 +110,14 @@ namespace IHI.Server.Plugins.Cecer1.MessengerManager
         {
             string searchString = message.PopPrefixedString();
 
-            List<Database.Habbo> matching;
+            List<IHI.Database.Habbo> matching;
             // Using IHIDB.Habbo rather than IHIDB.Friend because this will be passed to the HabboDistributor
             using (ISession db = CoreManager.ServerCore.GetDatabaseSession())
             {
-                matching = db.CreateCriteria<Database.Habbo>().
+                matching = db.CreateCriteria<IHI.Database.Habbo>().
                                Add(new LikeExpression("username", searchString + "%")).
                                SetMaxResults(20). // TODO: External config
-                               List<Database.Habbo>() as List<Database.Habbo>;
+                               List<IHI.Database.Habbo>() as List<IHI.Database.Habbo>;
             }
 
             List<IBefriendable> friends = new List<IBefriendable>();
@@ -124,7 +126,7 @@ namespace IHI.Server.Plugins.Cecer1.MessengerManager
             MessengerObject messenger = sender.GetMessenger();
             HabboDistributor habboDistributor = CoreManager.ServerCore.GetHabboDistributor();
 
-            foreach (Database.Habbo match in matching)
+            foreach (IHI.Database.Habbo match in matching)
             {
                 IBefriendable habbo = habboDistributor.GetHabbo(match);
                 if (messenger.IsFriend(habbo))
